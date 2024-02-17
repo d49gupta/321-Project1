@@ -27,10 +27,15 @@ r1_pos = (r2*cosd(theta2_pos) + r3*cosd(theta3_pos));
 r1_vel = (-r2*theta2_vel*sind(theta2_pos) - r3*theta3_vel*sind(theta3_pos));
 r1_acc = (-r2*(theta2_vel^2)*cosd(theta2_pos) - r3*(theta3_acc*sind(theta3_pos) + (theta3_vel^2)*cosd(theta3_pos)));
 
-r5 = 0; % Placeholder
-theta6 = 0; % Placeholder
-theta6_vel = 0; % Placeholder
-theta6_acc = 0; % Placeholder
+x = (-15*sind(theta3_pos) + 4*cosd(theta3_pos) + r2*sind(theta3_pos - theta2_pos))/r6; % Negative here?
+theta6 = asind((-15*sind(theta3_pos) + 4*cosd(theta3_pos) + r2*sind(theta3_pos - theta2_pos))/r6) + theta3_pos;
+theta6 = abs(theta6 + 180);
+theta6_vel = 1/(sqrt(x^2 - 1)) + theta3_vel; % Is this how I do it?
+theta6_acc = x*(-15*theta3_vel*cosd(theta3_pos) - 4*theta3_vel*sind(theta3_pos) + (theta3_vel - theta2_vel)*r2*cos(theta3_pos - theta2_pos))/(r6*((1-x))^1.5) + theta3_acc;
+
+r5 = 15*cosd(theta3_pos) + 4*sind(theta3_pos) + r6*cosd(theta6 - theta3_pos) - r2*cosd(theta2_pos + theta3_pos);
+r5_vel = -15*theta3_vel*sind(theta3_pos) + 4*theta3_vel*cosd(theta3_pos) - (theta6_vel - theta3_vel)*r6*sind(theta6 - theta3_pos) + (theta2_vel + theta3_vel)*r2*sind(theta2_pos + theta3_pos);
+r5_acc = -15*theta3_acc*sind(theta3_pos) - 15*(theta3_vel^2)*cosd(theta3_pos) + 4*theta3_acc*cosd(theta3_pos) - 4*(theta3_vel^2)*sind(theta3_pos) - (theta6_acc - theta3_acc)*r6*sind(theta6 - theta3_pos) - ((theta6_vel - theta3_vel)^2)*r6*cosd(theta6 - theta3_pos) + theta3_acc*r2*sind(theta2_pos + theta3_pos) + ((theta2_vel + theta3_vel)^2)*r2*cosd(theta2_pos + theta3_pos);
 
 % Coefficients of Forces
 A44 = -r2*sind(theta2_pos);
@@ -58,6 +63,7 @@ AG6X = -b6*theta6_acc*sind(theta6) - b6*(theta6_vel^2)*cosd(theta6); % Need thet
 AG6Y = b6*theta6_acc*cosd(theta6) - b6*(theta6_vel^2)*sind(theta6); % Need theta6 and their derivatives
 IG6 = (1/12)*m6*r6;
 
+% Matrix
 A = [1	0	0	1	0	0	0	0	0	0	0	0	0	0  0;
     0	-1	0	0	1	0	0	0	0	0	0	0	0	0	0;
     0	0	1	A44	A45	0	0	0	0	0	0	0	0	0	0;
@@ -90,7 +96,6 @@ results = [m2*AG2X;
             (IG6-m6*(b6)^2)*theta6_acc;
     ];
 
-disp(A);
 forces = linsolve(A, results); % Solves all unknown joint forces and M12
 
 % Shaking Force
